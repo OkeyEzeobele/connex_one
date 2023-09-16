@@ -7,6 +7,7 @@ import "./App.css";
 function App() {
   const [serverTime, setServerTime] = useState(null);
   const [clientTime, setClientTime] = useState(null);
+  const [isLoading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState(null);
   const [timeDiff, setTimeDiff] = useState("00:00:00");
 
@@ -19,6 +20,7 @@ function App() {
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const currentTime = Math.floor(Date.now() / 1000);
       setClientTime(currentTime);
 
@@ -37,6 +39,7 @@ function App() {
       });
       setMetrics(metricsResponse.data);
       // toast.success("Successfully fetched metrics");
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error(`Error fetching data: ${error.message}`);
@@ -64,13 +67,14 @@ function App() {
       <ToastContainer />
       <div className="left-panel">
         <h1>Server Time</h1>
-        <p>{serverTime || "Loading..."}</p>
+        {!isLoading ? <p>{serverTime}</p> : <p>Loading...</p>}
+
         <h1>Time Difference</h1>
-        <p>{timeDiff}</p>
+        {!isLoading ? <p>{timeDiff}</p> : <p>Loading...</p>}
       </div>
       <div className="right-panel">
         <h1>Metrics</h1>
-        <pre>{metrics || "Loading..."}</pre>
+        {!isLoading ? <pre>{metrics}</pre> : <h2>Loading...</h2>}
       </div>
     </div>
   );
