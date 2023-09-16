@@ -1,38 +1,63 @@
-import React from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
+import api from "./api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 function App() {
-  const [serverTime, setServerTime] = React.useState(null);
-  const [metrics, setMetrics] = React.useState(null);
-  const [timeDiff, setTimeDiff] = React.useState("00:00:00");
+  const [serverTime, setServerTime] = useState(null);
+  const [clientTime, setClientTime] = useState(null);
+  const [metrics, setMetrics] = useState(null);
+  const [timeDiff, setTimeDiff] = useState("00:00:00");
+
+  const formatTime = (seconds) => {
+    const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');
+    const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+    const remainingSeconds = String(seconds % 60).padStart(2, '0');
+    return `${hours}:${minutes}:${remainingSeconds}`;
+  };
 
   const fetchData = async () => {
     try {
-      const timeResponse = await axios.get("http://localhost:3000/time", {
+      const currentTime = Math.floor(Date.now() / 1000);
+      setClientTime(currentTime);
+
+      const timeResponse = await api.get("/time", {
         headers: { Authorization: "mysecrettoken" },
       });
       setServerTime(timeResponse.data.epoch);
-      toast.success("Successfully fetched server time");
 
-      const metricsResponse = await axios.get("http://localhost:3000/metrics", {
+      const diffInSeconds = Math.abs(currentTime - timeResponse.data.epoch);
+      setTimeDiff(formatTime(diffInSeconds));
+
+      // toast.success("Successfully fetched server time");
+
+      const metricsResponse = await api.get("/metrics", {
         headers: { Authorization: "mysecrettoken" },
       });
       setMetrics(metricsResponse.data);
-      toast.success("Successfully fetched metrics");
+      // toast.success("Successfully fetched metrics");
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error(`Error fetching data: ${error.message}`);
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (serverTime && clientTime) {
+        const newDiff = Math.abs(serverTime - Math.floor(Date.now() / 1000));
+        setTimeDiff(formatTime(newDiff));
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [serverTime, clientTime]);
 
   return (
     <div className="App" style={{ paddingTop: 30 }}>
