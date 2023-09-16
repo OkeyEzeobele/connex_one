@@ -1,7 +1,8 @@
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
+## Before You Begin
+Clone and start the api server from [here](https://github.com/OkeyEzeobele/connex_one_api)
 ## Available Scripts
 
 In the project directory, you can run:
